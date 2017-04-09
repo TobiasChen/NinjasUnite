@@ -3,30 +3,41 @@ using System.Collections.Generic;
 using UnityEngine;
 
 public class LevelSpawn : MonoBehaviour {
-    public GameObject Startlevel;
+
+    public GameObject Startlevel; //Probably going to be replaced by the Array 
     public GameObject[] Level;
-    private Vector2 currentPosition;
+    private float nextPosition;
     private GameObject CurrentLevel;
-    private int temp;
-    public float Gap;
-	// Use this for initialization
+    private GameObject NextLevel;
+    private int temp;  //Temp Value for testing
+    public float Gap; // Distance between levels
+
+
 	void Start ()
     {
-        //CurrentLevel = Startlevel;
         temp = 0;
-        CurrentLevel = Startlevel;
-        Instantiate(CurrentLevel);
-        currentPosition = CurrentLevel.GetComponent<Collider2D>().bounds.size;
+        nextPosition = 0;
+        NextLevel = Startlevel;
     }
 	
-	// Update is called once per frame
 	void Update ()
     {
-        currentPosition = currentPosition + new Vector2(CurrentLevel.GetComponent<Collider2D>().bounds.size.x, 0);
-        if (temp < 5)
-            CurrentLevel = Instantiate(Startlevel, currentPosition+new Vector2(Gap,0), Quaternion.identity);
-            temp += 1;
+        if (temp < 20) //Choses wherever or not to spawn an additional levle
+            Spawn();
 
-        print(currentPosition);
 	}
+    GameObject SelectLevel() // Goes over the Array selects a random level to spawn
+    {
+        int temp = Random.Range(0, Level.Length);
+        return Level[temp];
+        //return Startlevel;
+    }
+    void Spawn()
+    {
+        CurrentLevel = NextLevel;
+        NextLevel = SelectLevel(); //Selects next Level
+        Instantiate(CurrentLevel, new Vector2 (nextPosition, 0), Quaternion.identity);//Instantinates the level at the next Position, next Position is calculated the loop before.
+        nextPosition += ((CurrentLevel.GetComponent<Renderer>().bounds.size.x/2)+(NextLevel.GetComponent<Renderer>().bounds.size.x/2)+Gap); //Calcutlates next Positiona as size of last level+last Position+ Gap.
+        temp += 1; //temp value
+    }
 }
