@@ -1,12 +1,13 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class PlayerControler : MonoBehaviour {
 
-    public float speed;
-    public float maxSpeed = 20f;
-    public float jumpTakeOffSpeed = 100f;
+    public float maxSpeed;
+    public float jumpTakeOffSpeed;
+    public float Gravitation;
     //public BoxCollider2D colliderGround;
     //public BoxCollider2D ColliderBody;
     public bool grounded = false;
@@ -26,6 +27,11 @@ public class PlayerControler : MonoBehaviour {
         {
             grounded = true;
         }
+        if (hit.gameObject.tag=="DeathTrigger")
+        {
+            int scene = SceneManager.GetActiveScene().buildIndex;
+            SceneManager.LoadScene(scene, LoadSceneMode.Single);
+        }
     }
     private void OnCollisionExit2D(Collision2D hit)
     {
@@ -36,16 +42,20 @@ public class PlayerControler : MonoBehaviour {
     }
     private void FixedUpdate()
     {
-        float move = Input.GetAxis("Horizontal"); // Player Input
+        float move = Input.GetAxisRaw("Horizontal")*maxSpeed; // Player Input
         anim.SetFloat("Speed", Mathf.Abs(move)); //Animator Controler sets The Parameter Speed to the Movement Speed
-        speed = move * maxSpeed;
-        rb.velocity = new Vector2(speed, rb.velocity.y);
+        rb.velocity = new Vector2(move, rb.velocity.y);
 
         if(Input.GetKey(KeyCode.Space)&&grounded==true)
         {
             rb.AddForce(new Vector2(0, jumpTakeOffSpeed), ForceMode2D.Impulse);
         }
-
+        if (grounded == false)
+        {
+            Vector2 vel = rb.velocity;
+            vel.y -= Gravitation;
+            rb.velocity = vel;
+        }
         if (move > 0 && !facingRight)   //Deciede werever or not to flip the Sprite
             flip();
         else if (move < 0 && facingRight)
