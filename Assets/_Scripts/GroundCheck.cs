@@ -4,11 +4,13 @@ using UnityEngine;
 public class GroundCheck : MonoBehaviour {
     public BoxCollider2D GroundCollider;
     private PlayerControler Script;
+    private Animator anim;
 	// Use this for initialization
 	void Start ()
     {
         GroundCollider = GetComponent<BoxCollider2D>();
         Script = GetComponentInParent<PlayerControler>();
+        anim = GetComponentInParent<Animator>();
 	}
 	
 	// Update is called once per frame
@@ -23,6 +25,7 @@ public class GroundCheck : MonoBehaviour {
                 if (collision.gameObject.tag == "Ground")
                 {
                     Script.grounded = true;
+                    anim.SetBool("Grounded", true);
                 }
                 if (collision.gameObject.tag == "DeathTrigger")
                 {
@@ -35,6 +38,7 @@ public class GroundCheck : MonoBehaviour {
             if (collision.gameObject.tag == "Ground")
             {
                 Script.grounded = false;
-            }
+                anim.SetBool("Grounded", false);
+        }
         }
 }

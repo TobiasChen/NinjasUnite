@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using System.Linq;
 using UnityEngine.SceneManagement;
 
 public class PlayerControler : MonoBehaviour {
@@ -10,13 +11,13 @@ public class PlayerControler : MonoBehaviour {
     public float jumpTakeOffSpeed;
     public float moveForce;
     public float Gravitation;
-    public bool grounded;
-    public float StopForce;
+    [HideInInspector] public bool grounded;
     //Private Variables
     private bool Jumping;
     private Rigidbody2D rb;
     private Animator anim;
     private SpriteRenderer ren;
+    private GameObject Dagger;
     void Start ()
         {
             
@@ -25,44 +26,29 @@ public class PlayerControler : MonoBehaviour {
             ren = GetComponent<SpriteRenderer>();
             grounded = false;                   //The Character starts in the Air
             Jumping = false;
-
-
-        }
+            Dagger= Resources.FindObjectsOfTypeAll(typeof(GameObject)).Cast<GameObject>().Where(g => g.name == "Kunai").ToList()[0];
+    }
      void FixedUpdate()
         {
-        float temp = Input.GetAxis("Horizontal");
-        anim.SetFloat("Speed", Mathf.Abs(temp));   //The Animation Parameter "Speed" gets set to the Velocity in x direction of the Character
-        if (Mathf.Abs(temp)>0)
-            rb.velocity=new Vector2 (temp*moveForce,rb.velocity.y);
-        if (Mathf.Abs(rb.velocity.x) > maxSpeed)
-            rb.velocity = new Vector2(Mathf.Sign(rb.velocity.x) * maxSpeed, rb.velocity.y);
-        /*if (temp == 0f)                                   //A difrent Aproach on the movment system,let to sliedes without end, probalbly going to be removed
-            rb.velocity = new Vector2(0, rb.velocity.y);
-        if (temp == 0f && Mathf.Abs(rb.velocity.x) < 1)
-           return;
-        else if (temp == 0f && rb.velocity.x > 0)
-        {
-            rb.AddForce(Vector2.left * StopForce);
-        }
-        else if (temp == 0f && rb.velocity.x < 0)
-        {
-            rb.AddForce(Vector2.right * StopForce);
-        }
-        */
-        if (grounded == false)
-        {                                                                               //in X direction multiplicated with the Max Movment Speed    
-            Vector2 vel = rb.velocity;                                                  //Adds extra Gravity to make the Jump shorter and less heigh//The Gravitaion is simply subtracted from the velocity in Y Direction,
-            vel.y -= Gravitation;                                                       //as long as the Character is in the air
-            rb.velocity = vel;
-        }                                         //Just transfering the whole Movment part into its one Function to make the Code more Readable;
-        if (Jumping)
-            Jump(); 
+            float temp = Input.GetAxis("Horizontal");
+            anim.SetFloat("Speed", Mathf.Abs(temp));   //The Animation Parameter "Speed" gets set to the Velocity in x direction of the Character
+            if (Mathf.Abs(temp)>0)
+                rb.velocity=new Vector2 (temp*moveForce,rb.velocity.y);
+            if (Mathf.Abs(rb.velocity.x) > maxSpeed)
+                rb.velocity = new Vector2(Mathf.Sign(rb.velocity.x) * maxSpeed, rb.velocity.y);
+            if (grounded == false)
+            {                                                                               
+                Vector2 vel = rb.velocity;                                                  //Adds extra Gravity to make the Jump shorter and less heigh
+                vel.y -= Gravitation;                                                       //The Gravitaion is simply subtracted from the velocity in Y Direction,
+                rb.velocity = vel;                                                          //as long as the Character is in the air
+            }                                         
+            if (Jumping)
+                Jump(); 
         }
     private void Update()
     {
         if (Input.GetButtonDown("Jump") && grounded == true)                                //Only Lets the Player jump if he is grounded
         {
-            print(grounded+" test");
             Jumping = true;                                                                         
         }
         if (Input.GetKeyDown(KeyCode.F))
@@ -76,13 +62,13 @@ public class PlayerControler : MonoBehaviour {
     void Jump()
         {
         anim.SetTrigger("Jump");
-        print("test");
         rb.AddForce(new Vector2(0, jumpTakeOffSpeed), ForceMode2D.Impulse);                     //Jump just adds Force in y direction in an Impulse 
         Jumping = false;                                                                        //Jumping gets reverted to false to prevent continoeus aplied forece
        }
     void ThrowDagger()
         {
-            
+            Instantiate(Dagger, new Vector2(gameObject.transform.position.x, gameObject.transform.position.y), Quaternion.identity);
+            anim.SetTrigger("KnifeThrow");
         }
     public void DeathTrigger()
     {

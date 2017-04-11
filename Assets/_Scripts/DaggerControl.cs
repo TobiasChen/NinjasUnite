@@ -14,6 +14,6 @@ public class DaggerControl : MonoBehaviour {
 	// Update is called once per frame
 	void Update ()
         {
-        tf.transform.Translate(new Vector3(0.3f, 0));
+        tf.transform.Translate(new Vector3(ThrowSpeed, 0));
         }
 }
