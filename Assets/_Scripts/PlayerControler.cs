@@ -8,59 +8,85 @@ public class PlayerControler : MonoBehaviour {
     //Public Variables
     public float maxSpeed;
     public float jumpTakeOffSpeed;
+    public float moveForce;
     public float Gravitation;
-    [HideInInspector] public bool grounded; 
+    public bool grounded;
+    public float StopForce;
     //Private Variables
-    private bool facingRight;
+    private bool Jumping;
     private Rigidbody2D rb;
     private Animator anim;
-
+    private SpriteRenderer ren;
     void Start ()
         {
             
             anim = GetComponent<Animator>();    //Gets the Animator
             rb = GetComponent<Rigidbody2D>();   //Gets the RigidBody 
-            facingRight = true;                 //The Character starts as facing right
+            ren = GetComponent<SpriteRenderer>();
             grounded = false;                   //The Character starts in the Air
+            Jumping = false;
 
 
         }
-    private void FixedUpdate()
+     void FixedUpdate()
         {
-            Movement();                                         //Just transfering the whole Movment part into its one Function to make the Code more Readable;
-            anim.SetFloat("Speed", Mathf.Abs(rb.velocity.x));   //The Animation Parameter "Speed" gets set to the Velocity in x direction of the Character
+        float temp = Input.GetAxis("Horizontal");
+        anim.SetFloat("Speed", Mathf.Abs(temp));   //The Animation Parameter "Speed" gets set to the Velocity in x direction of the Character
+        if (Mathf.Abs(temp)>0)
+            rb.velocity=new Vector2 (temp*moveForce,rb.velocity.y);
+        if (Mathf.Abs(rb.velocity.x) > maxSpeed)
+            rb.velocity = new Vector2(Mathf.Sign(rb.velocity.x) * maxSpeed, rb.velocity.y);
+        /*if (temp == 0f)                                   //A difrent Aproach on the movment system,let to sliedes without end, probalbly going to be removed
+            rb.velocity = new Vector2(0, rb.velocity.y);
+        if (temp == 0f && Mathf.Abs(rb.velocity.x) < 1)
+           return;
+        else if (temp == 0f && rb.velocity.x > 0)
+        {
+            rb.AddForce(Vector2.left * StopForce);
         }
+        else if (temp == 0f && rb.velocity.x < 0)
+        {
+            rb.AddForce(Vector2.right * StopForce);
+        }
+        */
+        if (grounded == false)
+        {                                                                               //in X direction multiplicated with the Max Movment Speed    
+            Vector2 vel = rb.velocity;                                                  //Adds extra Gravity to make the Jump shorter and less heigh//The Gravitaion is simply subtracted from the velocity in Y Direction,
+            vel.y -= Gravitation;                                                       //as long as the Character is in the air
+            rb.velocity = vel;
+        }                                         //Just transfering the whole Movment part into its one Function to make the Code more Readable;
+        if (Jumping)
+            Jump(); 
+        }
+    private void Update()
+    {
+        if (Input.GetButtonDown("Jump") && grounded == true)                                //Only Lets the Player jump if he is grounded
+        {
+            print(grounded+" test");
+            Jumping = true;                                                                         
+        }
+        if (Input.GetKeyDown(KeyCode.F))
+            ThrowDagger();
+        if (rb.velocity.x >0)                                              //If moving right and facing left -->Flip
+            ren.flipX = false;
+        else if (rb.velocity.x < 0)                                        //If moving left and facing right -->Flip
+            ren.flipX = true;
+    }
 
+    void Jump()
+        {
+        anim.SetTrigger("Jump");
+        print("test");
+        rb.AddForce(new Vector2(0, jumpTakeOffSpeed), ForceMode2D.Impulse);                     //Jump just adds Force in y direction in an Impulse 
+        Jumping = false;                                                                        //Jumping gets reverted to false to prevent continoeus aplied forece
+       }
+    void ThrowDagger()
+        {
+            
+        }
     public void DeathTrigger()
-        {
-            SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex, LoadSceneMode.Single);
-            //The Scene Manage reloads the Scene by looking for the builInedx of the Current Scene and loading it 
-        }
-    private void Movement()
-        {
-            rb.velocity = new Vector2(Input.GetAxisRaw("Horizontal") * maxSpeed, rb.velocity.y);// The Velocity of the Character gets calculated over the Input
-                                                                                                //in X direction multiplicated with the Max Movment Speed                
-            if (Input.GetKey(KeyCode.Space) && grounded == true)                                //Only Lets the Player jump if he is grounded
-                {                                                                               //Jump just adds Force in y direction in an Impulse 
-                    rb.AddForce(new Vector2(0, jumpTakeOffSpeed), ForceMode2D.Impulse); 
-                }                                                                               
-            if (grounded == false)                                                              //Adds extra Gravity to make the Jump shorter and less heigh
-                {
-                    Vector2 vel = rb.velocity;                                                  //The Gravitaion is simply subtracted from the velocity in Y Direction,
-                    vel.y -= Gravitation;                                                       //as long as the Character is in the air
-                    rb.velocity = vel;                                                  
-
-                }                                                                               //If moving right and facing left -->Flip
-            if (rb.velocity.x > 0 && !facingRight)                                               
-                Flip();                                                                         //If moving left and facing right -->Flip
-            else if (rb.velocity.x < 0 && facingRight)                                           
-            Flip();
-        }
-    void Flip()//Flips the Sprite so it always look is in the direction the Character is moving
-        {
-            facingRight = !facingRight;
-            Vector3 theScale = transform.localScale;
-            theScale.x *= -1;
-            transform.localScale = theScale;
-        }
+    {
+        SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex, LoadSceneMode.Single);
+        //The Scene Manage reloads the Scene by looking for the builInedx of the Current Scene and loading it 
+    }
 }
