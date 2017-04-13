@@ -22,23 +22,37 @@ public class GroundCheck : MonoBehaviour {
     private void OnCollisionEnter2D(Collision2D collision)
         {
             {
-                if (collision.gameObject.tag == "Ground")
-                {
-                    Script.grounded = true;
-                    anim.SetBool("Grounded", true);
-                }
-                if (collision.gameObject.tag == "DeathTrigger")
+            if (collision.gameObject.tag == "Ground" || collision.gameObject.tag == "JumpPad" || collision.gameObject.tag == "Dirt")
+            {
+                Script.grounded = true;
+                Script.IsNotInAir = true;
+                anim.SetBool("Grounded", true);
+
+            }
+            if (collision.gameObject.tag == "DeathTrigger")
                 {
                     Script.DeathTrigger();
                 }
             }
         }
     private void OnCollisionExit2D(Collision2D collision)
+    {
+        if (collision.gameObject.tag == "Ground" || collision.gameObject.tag == "Dirt")
         {
-            if (collision.gameObject.tag == "Ground")
-            {
-                Script.grounded = false;
-                anim.SetBool("Grounded", false);
+            Script.IsNotInAir = false;
+            Script.grounded = false;
+            anim.SetBool("Grounded", false);
         }
+        else if (collision.gameObject.tag == "JumpPad")
+        {
+            StartCoroutine(JumpPad());
         }
+    }
+    IEnumerator JumpPad()
+    {
+        anim.SetBool("Grounded", true);
+        Script.IsNotInAir = false;
+        yield return new WaitForSeconds(0.2f);
+        Script.grounded = false;
+    }
 }
